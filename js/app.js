@@ -35,8 +35,17 @@ class App {
         // Carregar frequências
         this.sistema.frequencias = dados.frequencias || [];
 
+        // Debug: verificar se os dados foram carregados
+        console.log('Dados carregados:', {
+            alunos: this.sistema.alunos.length,
+            professores: this.sistema.professores.length,
+            turmas: this.sistema.turmas.length,
+            disciplinas: this.sistema.disciplinas.length
+        });
+
         // Se não há dados, inicializar com dados de exemplo
         if (!this.storage.temDados()) {
+            console.log('Inicializando dados de exemplo...');
             this.storage.inicializarDadosExemplo();
             this.carregarDados(); // Recarregar após inicialização
         }
@@ -85,6 +94,20 @@ class App {
         // Filtros de consulta de notas
         document.getElementById('filtro-aluno').addEventListener('change', () => {
             this.filtrarNotas();
+        });
+
+        document.getElementById('filtro-disciplina-nota').addEventListener('change', () => {
+            this.filtrarNotas();
+        });
+
+        document.getElementById('filtro-turma-nota').addEventListener('change', () => {
+            this.filtrarNotas();
+        });
+
+        // Formulário de cadastro de disciplinas
+        document.getElementById('form-disciplina').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.cadastrarDisciplina();
         });
 
         // Gerar relatório
@@ -141,6 +164,9 @@ class App {
                 break;
             case 'turmas':
                 this.atualizarListaTurmas();
+                // Garantir que os selects estão atualizados
+                this.carregarSelectDisciplinas();
+                this.carregarSelectProfessores();
                 break;
             case 'notas':
                 this.atualizarListaNotas();
@@ -150,6 +176,11 @@ class App {
                 break;
             case 'relatorios':
                 this.carregarFiltrosRelatorio();
+                // Limpar resultado anterior
+                document.getElementById('relatorio-resultado').innerHTML = '';
+                break;
+            case 'disciplinas':
+                this.atualizarListaDisciplinas();
                 break;
         }
     }
@@ -161,6 +192,9 @@ class App {
         document.getElementById('total-professores').textContent = stats.totalProfessores;
         document.getElementById('total-turmas').textContent = stats.totalTurmas;
         document.getElementById('total-disciplinas').textContent = stats.totalDisciplinas;
+        
+        // Debug: verificar se os dados estão sendo carregados
+        console.log('Dashboard atualizado:', stats);
     }
 
     // Carregar selects com dados
@@ -169,29 +203,29 @@ class App {
         this.carregarSelectDisciplinas();
         this.carregarSelectProfessores();
         this.carregarSelectAlunos();
-    }
-
-    carregarSelectTurmas() {
-        const select = document.getElementById('turma-aluno');
-        const turmas = this.storage.obterTurmas();
         
-        select.innerHTML = '<option value="">Selecione uma turma</option>';
-        turmas.forEach(turma => {
-            const option = document.createElement('option');
-            option.value = turma.id;
-            option.textContent = turma.nome;
-            select.appendChild(option);
+        // Debug: verificar se os selects foram carregados
+        console.log('Selects carregados:', {
+            disciplinas: this.storage.obterDisciplinas().length,
+            professores: this.storage.obterProfessores().length,
+            turmas: this.storage.obterTurmas().length,
+            alunos: this.storage.obterAlunos().length
         });
     }
 
+
     carregarSelectDisciplinas() {
-        const selects = ['disciplina-turma', 'disciplina-nota', 'disciplina-frequencia', 'filtro-disciplina'];
+        const selects = ['disciplina-turma', 'disciplina-nota', 'disciplina-frequencia', 'filtro-disciplina', 'filtro-disciplina-nota', 'disciplinas-professor'];
         const disciplinas = this.storage.obterDisciplinas();
         
         selects.forEach(selectId => {
             const select = document.getElementById(selectId);
             if (select) {
-                select.innerHTML = '<option value="">Selecione uma disciplina</option>';
+                if (selectId === 'disciplinas-professor') {
+                    select.innerHTML = '<option value="">Selecione disciplinas</option>';
+                } else {
+                    select.innerHTML = '<option value="">Selecione uma disciplina</option>';
+                }
                 disciplinas.forEach(disciplina => {
                     const option = document.createElement('option');
                     option.value = disciplina.id;
@@ -206,6 +240,8 @@ class App {
         const selects = ['professor-turma', 'filtro-professor'];
         const professores = this.storage.obterProfessores();
         
+        console.log('Carregando professores nos selects:', professores.length);
+        
         selects.forEach(selectId => {
             const select = document.getElementById(selectId);
             if (select) {
@@ -216,6 +252,9 @@ class App {
                     option.textContent = professor.nome;
                     select.appendChild(option);
                 });
+                console.log(`Select ${selectId} populado com ${professores.length} professores`);
+            } else {
+                console.log(`Select ${selectId} não encontrado`);
             }
         });
     }
@@ -232,6 +271,24 @@ class App {
                     const option = document.createElement('option');
                     option.value = aluno.id;
                     option.textContent = aluno.nome;
+                    select.appendChild(option);
+                });
+            }
+        });
+    }
+
+    carregarSelectTurmas() {
+        const selects = ['turma-aluno', 'filtro-turma', 'filtro-turma-nota'];
+        const turmas = this.storage.obterTurmas();
+        
+        selects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                select.innerHTML = '<option value="">Selecione uma turma</option>';
+                turmas.forEach(turma => {
+                    const option = document.createElement('option');
+                    option.value = turma.id;
+                    option.textContent = turma.nome;
                     select.appendChild(option);
                 });
             }
@@ -306,6 +363,7 @@ class App {
             document.getElementById('form-professor').reset();
             this.atualizarListaProfessores();
             this.atualizarDashboard();
+            this.carregarSelectProfessores(); // Atualizar selects de professores
         } else {
             alert('Erro ao cadastrar professor!');
         }
@@ -319,6 +377,28 @@ class App {
         const turno = document.getElementById('turno-turma').value;
         const ano = parseInt(document.getElementById('ano-turma').value);
         const semestre = parseInt(document.getElementById('semestre-turma').value);
+
+        console.log('Dados da turma:', { nome, disciplinaId, professorId, turno, ano, semestre });
+
+        // Verificar se todos os campos obrigatórios estão preenchidos
+        if (!nome || !disciplinaId || !professorId || !turno || !ano || !semestre) {
+            alert('Preencha todos os campos obrigatórios!');
+            return;
+        }
+
+        // Verificar se o professor existe
+        const professor = this.storage.obterProfessor(professorId);
+        if (!professor) {
+            alert('Professor selecionado não encontrado!');
+            return;
+        }
+
+        // Verificar se a disciplina existe
+        const disciplina = this.storage.obterDisciplina(disciplinaId);
+        if (!disciplina) {
+            alert('Disciplina selecionada não encontrada!');
+            return;
+        }
 
         const turma = new Turma(nome, disciplinaId, professorId, turno, ano, semestre);
         
@@ -525,31 +605,62 @@ class App {
         });
     }
 
-    // Filtrar notas por aluno
+    // Filtrar notas por aluno, disciplina e turma
     filtrarNotas() {
         const alunoId = document.getElementById('filtro-aluno').value;
+        const disciplinaId = document.getElementById('filtro-disciplina-nota').value;
+        const turmaId = document.getElementById('filtro-turma-nota').value;
         const container = document.getElementById('lista-notas');
         const alunos = this.storage.obterAlunos();
         const disciplinas = this.storage.obterDisciplinas();
+        const turmas = this.storage.obterTurmas();
         
         container.innerHTML = '';
         
-        const alunosFiltrados = alunoId ? alunos.filter(a => a.id === alunoId) : alunos;
+        let alunosFiltrados = alunos;
+        
+        // Filtrar por aluno
+        if (alunoId) {
+            alunosFiltrados = alunosFiltrados.filter(a => a.id === alunoId);
+        }
+        
+        // Filtrar por turma
+        if (turmaId) {
+            alunosFiltrados = alunosFiltrados.filter(a => a.turmaId === turmaId);
+        }
         
         alunosFiltrados.forEach(aluno => {
             if (aluno.notas && aluno.notas.length > 0) {
-                aluno.notas.forEach(nota => {
+                let notasFiltradas = aluno.notas;
+                
+                // Filtrar por disciplina
+                if (disciplinaId) {
+                    notasFiltradas = notasFiltradas.filter(nota => nota.disciplinaId === disciplinaId);
+                }
+                
+                notasFiltradas.forEach(nota => {
                     const disciplina = disciplinas.find(d => d.id === nota.disciplinaId);
                     const disciplinaNome = disciplina ? disciplina.nome : 'Disciplina não encontrada';
+                    const turma = turmas.find(t => t.id === aluno.turmaId);
+                    const turmaNome = turma ? turma.nome : 'Sem turma';
+                    
+                    // Calcular média da disciplina
+                    const mediaDisciplina = aluno.calcularMediaDisciplina(nota.disciplinaId);
+                    const frequenciaDisciplina = aluno.calcularFrequenciaDisciplina(nota.disciplinaId);
+                    const aprovado = aluno.verificarAprovacao(nota.disciplinaId);
                     
                     const notaDiv = document.createElement('div');
                     notaDiv.className = 'list-item';
                     notaDiv.innerHTML = `
                         <h4>${aluno.nome}</h4>
                         <p><strong>Disciplina:</strong> ${disciplinaNome}</p>
+                        <p><strong>Turma:</strong> ${turmaNome}</p>
                         <p><strong>Tipo:</strong> ${nota.tipoAvaliacao}</p>
                         <p><strong>Nota:</strong> ${nota.nota}</p>
                         <p><strong>Data:</strong> ${nota.data}</p>
+                        <p><strong>Média da Disciplina:</strong> ${mediaDisciplina}</p>
+                        <p><strong>Frequência:</strong> ${frequenciaDisciplina}%</p>
+                        <p><strong>Status:</strong> ${aprovado ? 'Aprovado' : 'Reprovado'}</p>
                     `;
                     container.appendChild(notaDiv);
                 });
@@ -559,9 +670,23 @@ class App {
 
     // Carregar filtros do relatório
     carregarFiltrosRelatorio() {
+        // Carregar todos os selects
         this.carregarSelectDisciplinas();
         this.carregarSelectProfessores();
         this.carregarSelectTurmas();
+        
+        // Debug: verificar se os elementos existem
+        console.log('Carregando filtros do relatório...');
+        console.log('Disciplinas disponíveis:', this.storage.obterDisciplinas().length);
+        console.log('Professores disponíveis:', this.storage.obterProfessores().length);
+        console.log('Turmas disponíveis:', this.storage.obterTurmas().length);
+        
+        // Garantir que os selects estão populados
+        setTimeout(() => {
+            this.carregarSelectDisciplinas();
+            this.carregarSelectProfessores();
+            this.carregarSelectTurmas();
+        }, 200);
     }
 
     // Gerar relatório
@@ -572,6 +697,15 @@ class App {
         
         const container = document.getElementById('relatorio-resultado');
         container.innerHTML = '';
+        
+        // Debug: verificar se os elementos existem
+        console.log('Filtros selecionados:', { disciplinaId, professorId, turmaId });
+        
+        // Verificar se há dados para gerar relatório
+        if (!disciplinaId && !professorId && !turmaId) {
+            container.innerHTML = '<div class="list-item"><p>Selecione pelo menos um filtro para gerar o relatório.</p></div>';
+            return;
+        }
         
         // Filtrar dados baseado nos filtros
         let turmas = this.storage.obterTurmas();
@@ -590,10 +724,39 @@ class App {
             turmas = turmas.filter(t => t.professorId === professorId);
         }
         
+        if (turmas.length === 0) {
+            container.innerHTML = '<div class="list-item"><p>Nenhuma turma encontrada com os filtros selecionados.</p></div>';
+            return;
+        }
+        
         // Gerar relatório para cada turma
         turmas.forEach(turma => {
             const disciplina = disciplinas.find(d => d.id === turma.disciplinaId);
             const professor = professores.find(p => p.id === turma.professorId);
+            
+            // Calcular estatísticas da turma
+            const alunos = turma.alunos || [];
+            const alunosComNotas = alunos.filter(a => a.notas && a.notas.some(n => n.disciplinaId === turma.disciplinaId));
+            
+            let mediaTurma = 0;
+            let notaMaisAlta = 0;
+            let notaMaisBaixa = 10;
+            let aprovados = 0;
+            let reprovados = 0;
+            
+            if (alunosComNotas.length > 0) {
+                const medias = alunosComNotas.map(aluno => parseFloat(aluno.calcularMediaDisciplina(turma.disciplinaId)));
+                const notas = alunosComNotas.flatMap(aluno => 
+                    aluno.notas.filter(nota => nota.disciplinaId === turma.disciplinaId).map(nota => nota.nota)
+                );
+                
+                mediaTurma = medias.reduce((a, b) => a + b, 0) / medias.length;
+                notaMaisAlta = Math.max(...notas);
+                notaMaisBaixa = Math.min(...notas);
+                
+                aprovados = alunosComNotas.filter(aluno => aluno.verificarAprovacao(turma.disciplinaId)).length;
+                reprovados = alunosComNotas.length - aprovados;
+            }
             
             const relatorioDiv = document.createElement('div');
             relatorioDiv.className = 'relatorio-item';
@@ -606,11 +769,35 @@ class App {
                 <div class="stats">
                     <div class="stat-item">
                         <div class="label">Total de Alunos</div>
-                        <div class="value">${turma.alunos ? turma.alunos.length : 0}</div>
+                        <div class="value">${alunos.length}</div>
                     </div>
                     <div class="stat-item">
                         <div class="label">Alunos com Notas</div>
-                        <div class="value">${turma.alunos ? turma.alunos.filter(a => a.notas && a.notas.length > 0).length : 0}</div>
+                        <div class="value">${alunosComNotas.length}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">Média da Turma</div>
+                        <div class="value">${mediaTurma.toFixed(2)}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">Nota Mais Alta</div>
+                        <div class="value">${notaMaisAlta.toFixed(2)}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">Nota Mais Baixa</div>
+                        <div class="value">${notaMaisBaixa.toFixed(2)}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">Aprovados</div>
+                        <div class="value">${aprovados}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">Reprovados</div>
+                        <div class="value">${reprovados}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">% Aprovação</div>
+                        <div class="value">${alunosComNotas.length > 0 ? ((aprovados / alunosComNotas.length) * 100).toFixed(2) : 0}%</div>
                     </div>
                 </div>
             `;
@@ -724,6 +911,76 @@ class App {
             statusDiv.textContent = '';
             statusDiv.className = 'backup-status';
         }, 5000);
+    }
+
+    // Cadastrar disciplina
+    cadastrarDisciplina() {
+        const nome = document.getElementById('nome-disciplina').value;
+        const codigo = document.getElementById('codigo-disciplina').value;
+        const carga = parseInt(document.getElementById('carga-disciplina').value);
+
+        // Verificar se código já existe
+        const disciplinaExistente = this.storage.obterDisciplinas().find(d => d.codigo === codigo);
+        if (disciplinaExistente) {
+            alert('Código da disciplina já cadastrado!');
+            return;
+        }
+
+        const disciplina = new Disciplina(nome, codigo, carga);
+        
+        if (this.storage.adicionarDisciplina(disciplina)) {
+            alert('Disciplina cadastrada com sucesso!');
+            document.getElementById('form-disciplina').reset();
+            this.atualizarListaDisciplinas();
+            this.atualizarDashboard();
+            this.carregarSelectDisciplinas();
+            
+            // Atualizar também os selects de professores
+            this.carregarSelectDisciplinas();
+        } else {
+            alert('Erro ao cadastrar disciplina!');
+        }
+    }
+
+    // Atualizar lista de disciplinas
+    atualizarListaDisciplinas() {
+        const container = document.getElementById('lista-disciplinas');
+        const disciplinas = this.storage.obterDisciplinas();
+        
+        container.innerHTML = '';
+        
+        disciplinas.forEach(disciplina => {
+            const disciplinaDiv = document.createElement('div');
+            disciplinaDiv.className = 'list-item';
+            disciplinaDiv.innerHTML = `
+                <h4>${disciplina.nome}</h4>
+                <p><strong>Código:</strong> ${disciplina.codigo}</p>
+                <p><strong>Carga Horária:</strong> ${disciplina.cargaHoraria} horas</p>
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="app.editarDisciplina('${disciplina.id}')">Editar</button>
+                    <button class="btn btn-danger" onclick="app.removerDisciplina('${disciplina.id}')">Remover</button>
+                </div>
+            `;
+            container.appendChild(disciplinaDiv);
+        });
+    }
+
+    // Métodos de edição e remoção para disciplinas
+    editarDisciplina(id) {
+        alert('Funcionalidade de edição será implementada em versão futura');
+    }
+
+    removerDisciplina(id) {
+        if (confirm('Tem certeza que deseja remover esta disciplina?')) {
+            if (this.storage.removerDisciplina(id)) {
+                alert('Disciplina removida com sucesso!');
+                this.atualizarListaDisciplinas();
+                this.atualizarDashboard();
+                this.carregarSelectDisciplinas();
+            } else {
+                alert('Erro ao remover disciplina!');
+            }
+        }
     }
 }
 
