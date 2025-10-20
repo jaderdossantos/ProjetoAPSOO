@@ -249,11 +249,19 @@ class App {
         
         // Debug: verificar se os selects foram carregados
         console.log('Selects carregados:', {
-            disciplinas: this.storage.obterDisciplinas().length,
-            professores: this.storage.obterProfessores().length,
-            turmas: this.storage.obterTurmas().length,
-            alunos: this.storage.obterAlunos().length
+            disciplinas: this.sistema.disciplinas.length,
+            professores: this.sistema.professores.length,
+            turmas: this.sistema.turmas.length,
+            alunos: this.sistema.alunos.length
         });
+    }
+
+    // Atualizar todos os selects do sistema
+    atualizarTodosOsSelects() {
+        this.carregarSelectTurmas();
+        this.carregarSelectDisciplinas();
+        this.carregarSelectProfessores();
+        this.carregarSelectAlunos();
     }
 
 
@@ -369,11 +377,14 @@ class App {
         const aluno = new Aluno(nome, matricula, cpf, nascimento, contato, turmaId);
         
         if (this.storage.adicionarAluno(aluno)) {
+            // Adicionar ao sistema também
+            this.sistema.alunos.push(aluno);
+            
             alert('Aluno cadastrado com sucesso!');
             document.getElementById('form-aluno').reset();
             this.atualizarListaAlunos();
             this.atualizarDashboard();
-            this.carregarSelectAlunos();
+            this.atualizarTodosOsSelects();
         } else {
             alert('Erro ao cadastrar aluno!');
         }
@@ -407,11 +418,14 @@ class App {
         const professor = new Professor(nome, matricula, cpf, area, contato, disciplinas);
         
         if (this.storage.adicionarProfessor(professor)) {
+            // Adicionar ao sistema também
+            this.sistema.professores.push(professor);
+            
             alert('Professor cadastrado com sucesso!');
             document.getElementById('form-professor').reset();
             this.atualizarListaProfessores();
             this.atualizarDashboard();
-            this.carregarSelectProfessores(); // Atualizar selects de professores
+            this.atualizarTodosOsSelects();
         } else {
             alert('Erro ao cadastrar professor!');
         }
@@ -451,11 +465,14 @@ class App {
         const turma = new Turma(nome, disciplinaId, professorId, turno, ano, semestre);
         
         if (this.storage.adicionarTurma(turma)) {
+            // Adicionar ao sistema também
+            this.sistema.turmas.push(turma);
+            
             alert('Turma cadastrada com sucesso!');
             document.getElementById('form-turma').reset();
             this.atualizarListaTurmas();
             this.atualizarDashboard();
-            this.carregarSelectTurmas();
+            this.atualizarTodosOsSelects();
         } else {
             alert('Erro ao cadastrar turma!');
         }
@@ -910,9 +927,13 @@ class App {
     removerAluno(id) {
         if (confirm('Tem certeza que deseja remover este aluno?')) {
             if (this.storage.removerAluno(id)) {
+                // Remover do sistema também
+                this.sistema.alunos = this.sistema.alunos.filter(a => a.id !== id);
+                
                 alert('Aluno removido com sucesso!');
                 this.atualizarListaAlunos();
                 this.atualizarDashboard();
+                this.atualizarTodosOsSelects();
             } else {
                 alert('Erro ao remover aluno!');
             }
@@ -926,9 +947,13 @@ class App {
     removerProfessor(id) {
         if (confirm('Tem certeza que deseja remover este professor?')) {
             if (this.storage.removerProfessor(id)) {
+                // Remover do sistema também
+                this.sistema.professores = this.sistema.professores.filter(p => p.id !== id);
+                
                 alert('Professor removido com sucesso!');
                 this.atualizarListaProfessores();
                 this.atualizarDashboard();
+                this.atualizarTodosOsSelects();
             } else {
                 alert('Erro ao remover professor!');
             }
@@ -942,9 +967,13 @@ class App {
     removerTurma(id) {
         if (confirm('Tem certeza que deseja remover esta turma?')) {
             if (this.storage.removerTurma(id)) {
+                // Remover do sistema também
+                this.sistema.turmas = this.sistema.turmas.filter(t => t.id !== id);
+                
                 alert('Turma removida com sucesso!');
                 this.atualizarListaTurmas();
                 this.atualizarDashboard();
+                this.atualizarTodosOsSelects();
             } else {
                 alert('Erro ao remover turma!');
             }
@@ -1026,14 +1055,14 @@ class App {
         const disciplina = new Disciplina(nome, codigo, carga);
         
         if (this.storage.adicionarDisciplina(disciplina)) {
+            // Adicionar ao sistema também
+            this.sistema.disciplinas.push(disciplina);
+            
             alert('Disciplina cadastrada com sucesso!');
             document.getElementById('form-disciplina').reset();
             this.atualizarListaDisciplinas();
             this.atualizarDashboard();
-            this.carregarSelectDisciplinas();
-            
-            // Atualizar também os selects de professores
-            this.carregarSelectDisciplinas();
+            this.atualizarTodosOsSelects();
         } else {
             alert('Erro ao cadastrar disciplina!');
         }
@@ -1070,10 +1099,13 @@ class App {
     removerDisciplina(id) {
         if (confirm('Tem certeza que deseja remover esta disciplina?')) {
             if (this.storage.removerDisciplina(id)) {
+                // Remover do sistema também
+                this.sistema.disciplinas = this.sistema.disciplinas.filter(d => d.id !== id);
+                
                 alert('Disciplina removida com sucesso!');
                 this.atualizarListaDisciplinas();
                 this.atualizarDashboard();
-                this.carregarSelectDisciplinas();
+                this.atualizarTodosOsSelects();
             } else {
                 alert('Erro ao remover disciplina!');
             }
