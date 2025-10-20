@@ -20,35 +20,66 @@ class App {
     carregarDados() {
         const dados = this.storage.carregarDados();
         
-        // Carregar alunos
-        this.sistema.alunos = dados.alunos || [];
+        // Carregar alunos - recriar instâncias da classe Aluno
+        this.sistema.alunos = (dados.alunos || []).map(alunoData => {
+            const aluno = new Aluno(
+                alunoData.nome,
+                alunoData.matricula,
+                alunoData.cpf,
+                alunoData.dataNascimento,
+                alunoData.contato,
+                alunoData.turmaId
+            );
+            // Restaurar propriedades adicionais
+            aluno.id = alunoData.id;
+            aluno.notas = alunoData.notas || [];
+            aluno.frequencias = alunoData.frequencias || [];
+            return aluno;
+        });
         
-        // Carregar professores
-        this.sistema.professores = dados.professores || [];
+        // Carregar professores - recriar instâncias da classe Professor
+        this.sistema.professores = (dados.professores || []).map(professorData => {
+            const professor = new Professor(
+                professorData.nome,
+                professorData.matricula,
+                professorData.cpf,
+                professorData.areaAtuacao,
+                professorData.contato,
+                professorData.disciplinas || []
+            );
+            professor.id = professorData.id;
+            return professor;
+        });
         
-        // Carregar turmas
-        this.sistema.turmas = dados.turmas || [];
+        // Carregar turmas - recriar instâncias da classe Turma
+        this.sistema.turmas = (dados.turmas || []).map(turmaData => {
+            const turma = new Turma(
+                turmaData.nome,
+                turmaData.disciplinaId,
+                turmaData.professorId,
+                turmaData.turno,
+                turmaData.ano,
+                turmaData.semestre
+            );
+            turma.id = turmaData.id;
+            turma.alunos = turmaData.alunos || [];
+            return turma;
+        });
         
-        // Carregar disciplinas
-        this.sistema.disciplinas = dados.disciplinas || [];
+        // Carregar disciplinas - recriar instâncias da classe Disciplina
+        this.sistema.disciplinas = (dados.disciplinas || []).map(disciplinaData => {
+            const disciplina = new Disciplina(
+                disciplinaData.nome,
+                disciplinaData.codigo,
+                disciplinaData.cargaHoraria,
+                disciplinaData.descricao || ''
+            );
+            disciplina.id = disciplinaData.id;
+            return disciplina;
+        });
         
         // Carregar frequências
         this.sistema.frequencias = dados.frequencias || [];
-
-        // Debug: verificar se os dados foram carregados
-        console.log('Dados carregados:', {
-            alunos: this.sistema.alunos.length,
-            professores: this.sistema.professores.length,
-            turmas: this.sistema.turmas.length,
-            disciplinas: this.sistema.disciplinas.length
-        });
-
-        // // Se não há dados, inicializar com dados de exemplo
-        // if (!this.storage.temDados()) {
-        //     console.log('Inicializando dados de exemplo...');
-        //     this.storage.inicializarDadosExemplo();
-        //     this.carregarDados(); // Recarregar após inicialização
-        // }
     }
 
     // Configurar eventos da interface
@@ -111,9 +142,15 @@ class App {
         });
 
         // Gerar relatório
-        document.getElementById('gerar-relatorio').addEventListener('click', () => {
-            this.gerarRelatorio();
-        });
+        const gerarRelatorioBtn = document.getElementById('gerar-relatorio');
+        if (gerarRelatorioBtn) {
+            gerarRelatorioBtn.addEventListener('click', () => {
+                console.log('Botão gerar relatório clicado');
+                this.gerarRelatorio();
+            });
+        } else {
+            console.error('Botão gerar relatório não encontrado!');
+        }
 
         // Funcionalidades de backup
         document.getElementById('download-backup').addEventListener('click', () => {
@@ -175,9 +212,15 @@ class App {
                 this.atualizarListaFrequencia();
                 break;
             case 'relatorios':
+                console.log('Navegando para módulo de relatórios');
                 this.carregarFiltrosRelatorio();
                 // Limpar resultado anterior
-                document.getElementById('relatorio-resultado').innerHTML = '';
+                const resultadoContainer = document.getElementById('relatorio-resultado');
+                if (resultadoContainer) {
+                    resultadoContainer.innerHTML = '';
+                } else {
+                    console.error('Container de resultado não encontrado!');
+                }
                 break;
             case 'disciplinas':
                 this.atualizarListaDisciplinas();
@@ -216,7 +259,9 @@ class App {
 
     carregarSelectDisciplinas() {
         const selects = ['disciplina-turma', 'disciplina-nota', 'disciplina-frequencia', 'filtro-disciplina', 'filtro-disciplina-nota', 'disciplinas-professor'];
-        const disciplinas = this.storage.obterDisciplinas();
+        const disciplinas = this.sistema.disciplinas;
+        
+        console.log('Carregando disciplinas nos selects:', disciplinas.length);
         
         selects.forEach(selectId => {
             const select = document.getElementById(selectId);
@@ -232,13 +277,16 @@ class App {
                     option.textContent = disciplina.nome;
                     select.appendChild(option);
                 });
+                console.log(`Select ${selectId} populado com ${disciplinas.length} disciplinas`);
+            } else {
+                console.log(`Select ${selectId} não encontrado`);
             }
         });
     }
 
     carregarSelectProfessores() {
         const selects = ['professor-turma', 'filtro-professor'];
-        const professores = this.storage.obterProfessores();
+        const professores = this.sistema.professores;
         
         console.log('Carregando professores nos selects:', professores.length);
         
@@ -261,7 +309,7 @@ class App {
 
     carregarSelectAlunos() {
         const selects = ['aluno-nota', 'aluno-frequencia', 'filtro-aluno'];
-        const alunos = this.storage.obterAlunos();
+        const alunos = this.sistema.alunos;
         
         selects.forEach(selectId => {
             const select = document.getElementById(selectId);
@@ -279,7 +327,7 @@ class App {
 
     carregarSelectTurmas() {
         const selects = ['turma-aluno', 'filtro-turma', 'filtro-turma-nota'];
-        const turmas = this.storage.obterTurmas();
+        const turmas = this.sistema.turmas;
         
         selects.forEach(selectId => {
             const select = document.getElementById(selectId);
@@ -688,36 +736,48 @@ class App {
 
     // Carregar filtros do relatório
     carregarFiltrosRelatorio() {
+        // Verificar se há dados no sistema
+        const temDados = this.storage.temDados();
+        console.log('Sistema tem dados:', temDados);
+        
+        if (!temDados) {
+            const container = document.getElementById('relatorio-resultado');
+            if (container) {
+                container.innerHTML = '<div class="list-item"><p>Nenhum dado encontrado no sistema. Cadastre alunos, professores, turmas e disciplinas primeiro.</p></div>';
+            }
+        }
+        
         // Carregar todos os selects
         this.carregarSelectDisciplinas();
         this.carregarSelectProfessores();
         this.carregarSelectTurmas();
         
-        // Debug: verificar se os elementos existem
-        console.log('Carregando filtros do relatório...');
-        console.log('Disciplinas disponíveis:', this.storage.obterDisciplinas().length);
-        console.log('Professores disponíveis:', this.storage.obterProfessores().length);
-        console.log('Turmas disponíveis:', this.storage.obterTurmas().length);
-        
-        // Garantir que os selects estão populados
+        // Debug: verificar se os selects foram populados
         setTimeout(() => {
-            this.carregarSelectDisciplinas();
-            this.carregarSelectProfessores();
-            this.carregarSelectTurmas();
-        }, 200);
+            const disciplinaSelect = document.getElementById('filtro-disciplina');
+            const professorSelect = document.getElementById('filtro-professor');
+            const turmaSelect = document.getElementById('filtro-turma');
+        }, 300);
     }
 
     // Gerar relatório
     gerarRelatorio() {
-        const disciplinaId = document.getElementById('filtro-disciplina').value;
-        const professorId = document.getElementById('filtro-professor').value;
-        const turmaId = document.getElementById('filtro-turma').value;
-        
+        const disciplinaSelect = document.getElementById('filtro-disciplina');
+        const professorSelect = document.getElementById('filtro-professor');
+        const turmaSelect = document.getElementById('filtro-turma');
         const container = document.getElementById('relatorio-resultado');
-        container.innerHTML = '';
         
-        // Debug: verificar se os elementos existem
-        console.log('Filtros selecionados:', { disciplinaId, professorId, turmaId });
+        // Verificar se os elementos existem
+        if (!disciplinaSelect || !professorSelect || !turmaSelect || !container) {
+            console.error('Elementos HTML não encontrados!');
+            return;
+        }
+        
+        const disciplinaId = disciplinaSelect.value;
+        const professorId = professorSelect.value;
+        const turmaId = turmaSelect.value;
+        
+        container.innerHTML = '';
         
         // Verificar se há dados para gerar relatório
         if (!disciplinaId && !professorId && !turmaId) {
@@ -726,10 +786,24 @@ class App {
         }
         
         // Filtrar dados baseado nos filtros
-        let turmas = this.storage.obterTurmas();
-        let disciplinas = this.storage.obterDisciplinas();
-        let professores = this.storage.obterProfessores();
-        let alunos = this.storage.obterAlunos();
+        let turmas = this.sistema.turmas;
+        let disciplinas = this.sistema.disciplinas;
+        let professores = this.sistema.professores;
+        let alunos = this.sistema.alunos;
+        
+        // Debug: verificar se há dados
+        console.log('Dados disponíveis:', {
+            turmas: turmas.length,
+            disciplinas: disciplinas.length,
+            professores: professores.length,
+            alunos: alunos.length
+        });
+        
+        // Verificar se há dados no sistema
+        if (turmas.length === 0 && disciplinas.length === 0 && professores.length === 0 && alunos.length === 0) {
+            container.innerHTML = '<div class="list-item"><p>Nenhum dado encontrado no sistema. Cadastre alunos, professores, turmas e disciplinas primeiro.</p></div>';
+            return;
+        }
         
         if (turmaId) {
             turmas = turmas.filter(t => t.id === turmaId);
