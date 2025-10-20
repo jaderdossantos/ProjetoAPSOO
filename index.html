@@ -37,6 +37,7 @@
                 <button class="nav-btn" data-module="notas">Notas</button>
                 <button class="nav-btn" data-module="frequencia">Frequência</button>
                 <button class="nav-btn" data-module="relatorios">Relatórios</button>
+                <button class="nav-btn" data-module="disciplinas">Disciplinas</button>
             </nav>
         </header>
 
@@ -220,6 +221,18 @@
                             <option value="">Todos os alunos</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="filtro-disciplina-nota">Filtrar por Disciplina:</label>
+                        <select id="filtro-disciplina-nota">
+                            <option value="">Todas as disciplinas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-turma-nota">Filtrar por Turma:</label>
+                        <select id="filtro-turma-nota">
+                            <option value="">Todas as turmas</option>
+                        </select>
+                    </div>
                     <div id="lista-notas" class="list"></div>
                 </div>
             </div>
@@ -293,6 +306,29 @@
                         <button id="limpar-dados" class="btn btn-danger">Limpar Todos os Dados</button>
                     </div>
                     <div id="backup-status" class="backup-status"></div>
+                </div>
+            </div>
+
+            <div id="disciplinas" class="module">
+                <h2>Cadastro de Disciplinas</h2>
+                <form id="form-disciplina" class="form">
+                    <div class="form-group">
+                        <label for="nome-disciplina">Nome:</label>
+                        <input type="text" id="nome-disciplina" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="codigo-disciplina">Código:</label>
+                        <input type="text" id="codigo-disciplina" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="carga-disciplina">Carga Horária:</label>
+                        <input type="number" id="carga-disciplina" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cadastrar Disciplina</button>
+                </form>
+                <div class="list-container">
+                    <h3>Disciplinas Cadastradas</h3>
+                    <div id="lista-disciplinas" class="list"></div>
                 </div>
             </div>
         </main>

@@ -109,11 +109,11 @@ class Aluno extends Pessoa {
         return ((presentes / this.frequencias.length) * 100).toFixed(2);
     }
 
-    // Verificar se está aprovado (média >= 7 e frequência >= 75%)
+    // Verificar se está aprovado (média >= 6 e frequência >= 75%)
     verificarAprovacao(disciplinaId) {
         const media = parseFloat(this.calcularMediaDisciplina(disciplinaId));
         const frequencia = parseFloat(this.calcularFrequenciaDisciplina(disciplinaId));
-        return media >= 7 && frequencia >= 75;
+        return media >= 6 && frequencia >= 75;
     }
 }
 
