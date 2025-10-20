@@ -43,12 +43,12 @@ class App {
             disciplinas: this.sistema.disciplinas.length
         });
 
-        // Se não há dados, inicializar com dados de exemplo
-        if (!this.storage.temDados()) {
-            console.log('Inicializando dados de exemplo...');
-            this.storage.inicializarDadosExemplo();
-            this.carregarDados(); // Recarregar após inicialização
-        }
+        // // Se não há dados, inicializar com dados de exemplo
+        // if (!this.storage.temDados()) {
+        //     console.log('Inicializando dados de exemplo...');
+        //     this.storage.inicializarDadosExemplo();
+        //     this.carregarDados(); // Recarregar após inicialização
+        // }
     }
 
     // Configurar eventos da interface
@@ -428,6 +428,15 @@ class App {
             data: new Date().toISOString().split('T')[0]
         };
 
+        // Adicionar nota ao aluno também
+        const aluno = this.storage.obterAluno(alunoId);
+        if (aluno) {
+            if (!aluno.notas) {
+                aluno.notas = [];
+            }
+            aluno.notas.push(notaObj);
+        }
+
         if (this.storage.adicionarNota(alunoId, notaObj)) {
             alert('Nota lançada com sucesso!');
             document.getElementById('form-nota').reset();
@@ -451,6 +460,15 @@ class App {
             data,
             presente
         };
+
+        // Adicionar frequência ao aluno também
+        const aluno = this.storage.obterAluno(alunoId);
+        if (aluno) {
+            if (!aluno.frequencias) {
+                aluno.frequencias = [];
+            }
+            aluno.frequencias.push(frequenciaObj);
+        }
 
         if (this.storage.adicionarFrequencia(frequenciaObj)) {
             alert('Frequência registrada com sucesso!');
@@ -645,9 +663,9 @@ class App {
                     const turmaNome = turma ? turma.nome : 'Sem turma';
                     
                     // Calcular média da disciplina
-                    const mediaDisciplina = aluno.calcularMediaDisciplina(nota.disciplinaId);
-                    const frequenciaDisciplina = aluno.calcularFrequenciaDisciplina(nota.disciplinaId);
-                    const aprovado = aluno.verificarAprovacao(nota.disciplinaId);
+                    const mediaDisciplina = parseFloat(aluno.calcularMediaDisciplina(nota.disciplinaId));
+                    const frequenciaDisciplina = parseFloat(aluno.calcularFrequenciaDisciplina(nota.disciplinaId));
+                    const aprovado = mediaDisciplina >= 6 && frequenciaDisciplina >= 75;
                     
                     const notaDiv = document.createElement('div');
                     notaDiv.className = 'list-item';
@@ -711,6 +729,7 @@ class App {
         let turmas = this.storage.obterTurmas();
         let disciplinas = this.storage.obterDisciplinas();
         let professores = this.storage.obterProfessores();
+        let alunos = this.storage.obterAlunos();
         
         if (turmaId) {
             turmas = turmas.filter(t => t.id === turmaId);
@@ -734,9 +753,9 @@ class App {
             const disciplina = disciplinas.find(d => d.id === turma.disciplinaId);
             const professor = professores.find(p => p.id === turma.professorId);
             
-            // Calcular estatísticas da turma
-            const alunos = turma.alunos || [];
-            const alunosComNotas = alunos.filter(a => a.notas && a.notas.some(n => n.disciplinaId === turma.disciplinaId));
+            // Buscar alunos da turma
+            const alunosTurma = alunos.filter(a => a.turmaId === turma.id);
+            const alunosComNotas = alunosTurma.filter(a => a.notas && a.notas.some(n => n.disciplinaId === turma.disciplinaId));
             
             let mediaTurma = 0;
             let notaMaisAlta = 0;
@@ -754,7 +773,11 @@ class App {
                 notaMaisAlta = Math.max(...notas);
                 notaMaisBaixa = Math.min(...notas);
                 
-                aprovados = alunosComNotas.filter(aluno => aluno.verificarAprovacao(turma.disciplinaId)).length;
+                aprovados = alunosComNotas.filter(aluno => {
+                    const media = parseFloat(aluno.calcularMediaDisciplina(turma.disciplinaId));
+                    const frequencia = parseFloat(aluno.calcularFrequenciaDisciplina(turma.disciplinaId));
+                    return media >= 6 && frequencia >= 75;
+                }).length;
                 reprovados = alunosComNotas.length - aprovados;
             }
             
@@ -769,7 +792,7 @@ class App {
                 <div class="stats">
                     <div class="stat-item">
                         <div class="label">Total de Alunos</div>
-                        <div class="value">${alunos.length}</div>
+                        <div class="value">${alunosTurma.length}</div>
                     </div>
                     <div class="stat-item">
                         <div class="label">Alunos com Notas</div>

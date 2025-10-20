@@ -309,62 +309,62 @@ class StorageManager {
     }
 
     // Inicializar dados de exemplo
-    inicializarDadosExemplo() {
-        if (this.temDados()) {
-            return false; // Já tem dados
-        }
+    // inicializarDadosExemplo() {
+    //     if (this.temDados()) {
+    //         return false; // Já tem dados
+    //     }
 
-        // Criar disciplinas de exemplo
-        const disciplinas = [
-            new Disciplina('Matemática', 'MAT001', 60, 'Matemática Básica'),
-            new Disciplina('Português', 'POR001', 60, 'Língua Portuguesa'),
-            new Disciplina('História', 'HIS001', 40, 'História do Brasil'),
-            new Disciplina('Geografia', 'GEO001', 40, 'Geografia Geral'),
-            new Disciplina('Ciências', 'CIE001', 40, 'Ciências Naturais')
-        ];
+    //     // Criar disciplinas de exemplo
+    //     const disciplinas = [
+    //         new Disciplina('Matemática', 'MAT001', 60, 'Matemática Básica'),
+    //         new Disciplina('Português', 'POR001', 60, 'Língua Portuguesa'),
+    //         new Disciplina('História', 'HIS001', 40, 'História do Brasil'),
+    //         new Disciplina('Geografia', 'GEO001', 40, 'Geografia Geral'),
+    //         new Disciplina('Ciências', 'CIE001', 40, 'Ciências Naturais')
+    //     ];
 
-        disciplinas.forEach(disciplina => {
-            this.adicionarDisciplina(disciplina);
-        });
+    //     disciplinas.forEach(disciplina => {
+    //         this.adicionarDisciplina(disciplina);
+    //     });
 
-        // Criar professores de exemplo
-        const professores = [
-            new Professor('João Silva', 'PROF001', '123.456.789-00', 'Matemática', '(11) 99999-1111', [disciplinas[0].id]),
-            new Professor('Maria Santos', 'PROF002', '987.654.321-00', 'Português', '(11) 99999-2222', [disciplinas[1].id]),
-            new Professor('Pedro Costa', 'PROF003', '456.789.123-00', 'História', '(11) 99999-3333', [disciplinas[2].id])
-        ];
+    //     // Criar professores de exemplo
+    //     const professores = [
+    //         new Professor('João Silva', 'PROF001', '123.456.789-00', 'Matemática', '(11) 99999-1111', [disciplinas[0].id]),
+    //         new Professor('Maria Santos', 'PROF002', '987.654.321-00', 'Português', '(11) 99999-2222', [disciplinas[1].id]),
+    //         new Professor('Pedro Costa', 'PROF003', '456.789.123-00', 'História', '(11) 99999-3333', [disciplinas[2].id])
+    //     ];
 
-        professores.forEach(professor => {
-            this.adicionarProfessor(professor);
-        });
+    //     professores.forEach(professor => {
+    //         this.adicionarProfessor(professor);
+    //     });
 
-        // Criar turmas de exemplo
-        const turmas = [
-            new Turma('Turma A - Matemática', disciplinas[0].id, professores[0].id, 'manha', 2024, 1),
-            new Turma('Turma B - Português', disciplinas[1].id, professores[1].id, 'tarde', 2024, 1),
-            new Turma('Turma C - História', disciplinas[2].id, professores[2].id, 'noite', 2024, 1)
-        ];
+    //     // Criar turmas de exemplo
+    //     const turmas = [
+    //         new Turma('Turma A - Matemática', disciplinas[0].id, professores[0].id, 'manha', 2024, 1),
+    //         new Turma('Turma B - Português', disciplinas[1].id, professores[1].id, 'tarde', 2024, 1),
+    //         new Turma('Turma C - História', disciplinas[2].id, professores[2].id, 'noite', 2024, 1)
+    //     ];
 
-        turmas.forEach(turma => {
-            this.adicionarTurma(turma);
-        });
+    //     turmas.forEach(turma => {
+    //         this.adicionarTurma(turma);
+    //     });
 
-        // Criar alunos de exemplo
-        const alunos = [
-            new Aluno('Ana Oliveira', 'ALU001', '111.222.333-44', '2000-01-15', '(11) 99999-4444', turmas[0].id),
-            new Aluno('Carlos Pereira', 'ALU002', '555.666.777-88', '1999-05-20', '(11) 99999-5555', turmas[0].id),
-            new Aluno('Lucia Fernandes', 'ALU003', '999.888.777-66', '2001-03-10', '(11) 99999-6666', turmas[1].id)
-        ];
+    //     // Criar alunos de exemplo
+    //     const alunos = [
+    //         new Aluno('Ana Oliveira', 'ALU001', '111.222.333-44', '2000-01-15', '(11) 99999-4444', turmas[0].id),
+    //         new Aluno('Carlos Pereira', 'ALU002', '555.666.777-88', '1999-05-20', '(11) 99999-5555', turmas[0].id),
+    //         new Aluno('Lucia Fernandes', 'ALU003', '999.888.777-66', '2001-03-10', '(11) 99999-6666', turmas[1].id)
+    //     ];
 
-        alunos.forEach(aluno => {
-            this.adicionarAluno(aluno);
-            // Adicionar aluno à turma
-            const turma = this.obterTurma(aluno.turmaId);
-            if (turma) {
-                turma.alunos.push(aluno);
-            }
-        });
+    //     alunos.forEach(aluno => {
+    //         this.adicionarAluno(aluno);
+    //         // Adicionar aluno à turma
+    //         const turma = this.obterTurma(aluno.turmaId);
+    //         if (turma) {
+    //             turma.alunos.push(aluno);
+    //         }
+    //     });
 
-        return this.salvarDados();
-    }
+    //     return this.salvarDados();
+    // }
 }
